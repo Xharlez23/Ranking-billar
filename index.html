@@ -112,21 +112,27 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
-            authDomain: "rankingbillar.firebaseapp.com",
-            projectId: "rankingbillar",
-            storageBucket: "rankingbillar.appspot.com",
-            messagingSenderId: "527851969370",
-            appId: "1:527851969370:web:616b5a38062f7105a93163",
-            measurementId: "G-DH55Y3ZL0E"
-        };
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
+    authDomain: "rankingbillar.firebaseapp.com",
+    projectId: "rankingbillar",
+    storageBucket: "rankingbillar.firebasestorage.app",
+    messagingSenderId: "527851969370",
+    appId: "1:527851969370:web:616b5a38062f7105a93163",
+    measurementId: "G-DH55Y3ZL0E"
+  };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 
         // Función para agregar partida a Firestore
         async function agregarPartida(jugador1, puntos1, jugador2, puntos2) {
