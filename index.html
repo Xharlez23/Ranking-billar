@@ -4,74 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking de Billar</title>
-
-    <!-- Estilos CSS -->
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: #333;
+            text-align: center;
         }
 
         h1 {
-            color: #2c3e50;
+            color: #333;
         }
 
-        h2 {
-            color: #16a085;
-        }
-
-        div {
-            margin-bottom: 20px;
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         input {
-            padding: 8px;
-            margin-right: 10px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
             border-radius: 5px;
+            border: 1px solid #ddd;
             width: 200px;
         }
 
         button {
             padding: 10px 20px;
-            background-color: #16a085;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #1abc9c;
+            background-color: #45a049;
         }
 
         table {
-            border-collapse: collapse;
             width: 80%;
-            max-width: 800px;
-            margin-top: 20px;
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
+            margin: 20px auto;
+            border-collapse: collapse;
         }
 
-        th, td {
-            padding: 12px;
-            text-align: center;
+        table, th, td {
             border: 1px solid #ddd;
         }
 
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
         th {
-            background-color: #16a085;
+            background-color: #4CAF50;
             color: white;
         }
 
@@ -79,17 +71,50 @@
             background-color: #f2f2f2;
         }
 
-        tr:hover {
-            background-color: #e6f7f7;
+        .form-container {
+            margin-bottom: 20px;
         }
     </style>
+</head>
+<body>
 
+    <h1>Ranking de Billar</h1>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>Registrar Partida</h2>
+            <input type="text" id="jugador1" placeholder="Nombre del Jugador 1">
+            <input type="number" id="puntos1" placeholder="Puntos Jugador 1" min="0">
+            <input type="text" id="jugador2" placeholder="Nombre del Jugador 2">
+            <input type="number" id="puntos2" placeholder="Puntos Jugador 2" min="0">
+            <button onclick="agregarPartida(
+                document.getElementById('jugador1').value,
+                document.getElementById('puntos1').value,
+                document.getElementById('jugador2').value,
+                document.getElementById('puntos2').value
+            )">Agregar Partida</button>
+        </div>
+
+        <h2>Ranking Actual</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Partida</th>
+                    <th>Puntos</th>
+                </tr>
+            </thead>
+            <tbody id="tablaRanking">
+                <!-- Aquí se llenarán los datos del ranking -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Firebase SDK -->
     <script type="module">
-        // Importar las funciones necesarias desde el SDK de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
             authDomain: "rankingbillar.firebaseapp.com",
@@ -100,14 +125,14 @@
             measurementId: "G-DH55Y3ZL0E"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Función para agregar una partida al ranking
+        // Función para agregar partida a Firestore
         async function agregarPartida(jugador1, puntos1, jugador2, puntos2) {
             if (jugador1 && puntos1 && jugador2 && puntos2) {
                 try {
+                    // Agregar la partida a la colección "partidas"
                     const docRef = await addDoc(collection(db, "partidas"), {
                         jugador1: jugador1,
                         puntos1: parseInt(puntos1),
@@ -116,7 +141,7 @@
                         fecha: new Date()
                     });
                     console.log("Documento agregado con ID: ", docRef.id);
-                    cargarRanking();  // Actualizar la tabla después de agregar la partida
+                    cargarRanking(); // Cargar ranking después de agregar la partida
                 } catch (e) {
                     console.error("Error al agregar el documento: ", e);
                 }
@@ -125,62 +150,39 @@
             }
         }
 
-        // Función para cargar el ranking desde Firebase
+        // Función para cargar el ranking desde Firestore
         async function cargarRanking() {
-            const querySnapshot = await getDocs(collection(db, "partidas"));
-            const ranking = [];
-            querySnapshot.forEach((doc) => {
-                ranking.push(doc.data());
-            });
+            try {
+                const querySnapshot = await getDocs(collection(db, "partidas"));
+                const ranking = [];
+                querySnapshot.forEach((doc) => {
+                    ranking.push(doc.data());
+                });
 
-            // Ordenar el ranking por puntos obtenidos
-            ranking.sort((a, b) => {
-                const puntosTotalesA = a.puntos1 + a.puntos2;
-                const puntosTotalesB = b.puntos1 + b.puntos2;
-                return puntosTotalesB - puntosTotalesA;
-            });
+                // Ordenar partidas por la suma de los puntos
+                ranking.sort((a, b) => {
+                    const puntosTotalesA = a.puntos1 + a.puntos2;
+                    const puntosTotalesB = b.puntos1 + b.puntos2;
+                    return puntosTotalesB - puntosTotalesA;
+                });
 
-            // Mostrar el ranking en la tabla
-            const tabla = document.getElementById("tablaRanking");
-            tabla.innerHTML = '';  // Limpiar la tabla antes de actualizarla
-            ranking.forEach((partida, index) => {
-                const row = tabla.insertRow();
-                row.insertCell(0).textContent = index + 1;
-                row.insertCell(1).textContent = `${partida.jugador1} vs ${partida.jugador2}`;
-                row.insertCell(2).textContent = `${partida.puntos1} - ${partida.puntos2}`;
-            });
+                // Actualizar la tabla de ranking
+                const tabla = document.getElementById("tablaRanking");
+                tabla.innerHTML = ''; // Limpiar la tabla antes de actualizar
+                ranking.forEach((partida, index) => {
+                    const row = tabla.insertRow();
+                    row.insertCell(0).textContent = index + 1;
+                    row.insertCell(1).textContent = `${partida.jugador1} vs ${partida.jugador2}`;
+                    row.insertCell(2).textContent = `${partida.puntos1} - ${partida.puntos2}`;
+                });
+            } catch (error) {
+                console.error("Error al cargar el ranking:", error);
+            }
         }
 
-        // Cargar el ranking cuando se carga la página
+        // Cargar el ranking al inicio
         window.onload = cargarRanking;
     </script>
-</head>
-<body>
-
-<h1>Ranking de Billar</h1>
-
-<div>
-    <h2>Registrar Partida</h2>
-    <input type="text" id="jugador1" placeholder="Nombre del Jugador 1">
-    <input type="number" id="puntos1" placeholder="Puntos Jugador 1" min="0">
-    <input type="text" id="jugador2" placeholder="Nombre del Jugador 2">
-    <input type="number" id="puntos2" placeholder="Puntos Jugador 2" min="0">
-    <button onclick="agregarPartida(document.getElementById('jugador1').value, document.getElementById('puntos1').value, document.getElementById('jugador2').value, document.getElementById('puntos2').value)">Agregar Partida</button>
-</div>
-
-<h2>Ranking Actual</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Posición</th>
-            <th>Partida</th>
-            <th>Puntos</th>
-        </tr>
-    </thead>
-    <tbody id="tablaRanking">
-        <!-- Aquí se llenarán los datos del ranking -->
-    </tbody>
-</table>
 
 </body>
 </html>
