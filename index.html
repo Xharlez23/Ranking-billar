@@ -4,134 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ranking de Billar</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-    <style>
-      /* Estilo original de la tabla y la página */
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding: 20px;
-      }
+    <script type="module">
+      // Importar los módulos de Firebase
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-
-      .tabla-ranking {
-        width: 80%;
-        margin: 20px auto;
-        border-collapse: collapse;
-      }
-
-      .tabla-ranking th,
-      .tabla-ranking td {
-        padding: 12px;
-        text-align: center;
-        border: 1px solid #ddd;
-      }
-
-      .tabla-ranking th {
-        background-color: #3498db;
-        color: white;
-      }
-
-      .tabla-ranking tr:nth-child(even) {
-        background-color: #f2f2f2;
-      }
-
-      .tabla-ranking tr:hover {
-        background-color: #ddd;
-      }
-
-      .formulario {
-        text-align: center;
-        margin-top: 20px;
-      }
-
-      .formulario input[type="text"],
-      .formulario input[type="number"] {
-        padding: 10px;
-        margin: 10px;
-        width: 200px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-      }
-
-      .formulario button {
-        padding: 10px 20px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      .formulario button:hover {
-        background-color: #2980b9;
-      }
-
-      .alert {
-        margin-top: 20px;
-        text-align: center;
-        color: red;
-      }
-
-      .alert-success {
-        color: green;
-      }
-
-      /* Diseño del VS */
-      .vs {
-        margin: 20px auto;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-      }
-
-      .vs span {
-        padding: 10px 20px;
-        background-color: #3498db;
-        color: white;
-        border-radius: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Ranking de Billar</h1>
-
-    <!-- Tabla para mostrar el ranking -->
-    <table class="tabla-ranking" id="tabla-ranking">
-      <thead>
-        <tr>
-          <th>Jugador</th>
-          <th>Puntos</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <!-- VS para mostrar la partida entre 2 jugadores -->
-    <div class="vs">
-      <span id="vs-text">VS</span>
-    </div>
-
-    <!-- Formulario para agregar una nueva partida -->
-    <div class="formulario">
-      <h2>Agregar Nueva Partida</h2>
-      <input type="text" id="jugador1" placeholder="Nombre del Jugador 1" />
-      <input type="number" id="puntos1" placeholder="Puntos del Jugador 1" />
-      <br />
-      <input type="text" id="jugador2" placeholder="Nombre del Jugador 2" />
-      <input type="number" id="puntos2" placeholder="Puntos del Jugador 2" />
-      <button type="button" onclick="agregarPartida()">Agregar Partida</button>
-    </div>
-
-    <div id="alert" class="alert"></div>
-
-    <script>
       // Configuración de Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
@@ -143,17 +25,17 @@
         measurementId: "G-DH55Y3ZL0E",
       };
 
-      // Inicializa Firebase
-      const app = firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore(); // Aquí se inicializa la base de datos correctamente
+      // Inicializar Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app); // Obtiene la instancia de Firestore
 
       // Función para cargar el ranking de partidas
       async function cargarRanking() {
-        const rankingRef = db.collection("ranking"); // Nombre de la colección en Firestore
+        const rankingRef = collection(db, "ranking"); // Referencia a la colección "ranking"
         try {
-          const querySnapshot = await rankingRef.get();
+          const querySnapshot = await getDocs(rankingRef);
           const tabla = document.querySelector("#tabla-ranking tbody");
-          tabla.innerHTML = ""; // Limpia la tabla antes de cargar nuevos datos
+          tabla.innerHTML = ""; // Limpiar tabla antes de cargar nuevos datos
 
           querySnapshot.forEach((doc) => {
             const data = doc.data();
@@ -186,11 +68,11 @@
 
         try {
           // Agregar las partidas de ambos jugadores a la base de datos
-          await db.collection("ranking").add({
+          await addDoc(collection(db, "ranking"), {
             jugador: jugador1,
             puntos: puntos1,
           });
-          await db.collection("ranking").add({
+          await addDoc(collection(db, "ranking"), {
             jugador: jugador2,
             puntos: puntos2,
           });
@@ -203,8 +85,8 @@
           document.getElementById("alert").textContent =
             "¡Partida agregada exitosamente!";
           document.getElementById("alert").classList.remove("alert");
-          document.getElementById("alert").classList.add("alert-success"); // Cambia el estilo a éxito
-          cargarRanking(); // Recarga el ranking después de agregar la partida
+          document.getElementById("alert").classList.add("alert-success"); // Cambiar el estilo a éxito
+          cargarRanking(); // Recargar el ranking después de agregar la partida
         } catch (error) {
           console.error("Error al agregar la partida:", error);
           document.getElementById("alert").textContent =
@@ -212,8 +94,40 @@
         }
       }
 
-      // Carga el ranking inicial cuando la página se cargue
+      // Cargar el ranking inicial cuando la página se cargue
       window.onload = cargarRanking;
     </script>
+  </head>
+  <body>
+    <h1>Ranking de Billar</h1>
+
+    <!-- Tabla para mostrar el ranking -->
+    <table class="tabla-ranking" id="tabla-ranking">
+      <thead>
+        <tr>
+          <th>Jugador</th>
+          <th>Puntos</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- VS para mostrar la partida entre 2 jugadores -->
+    <div class="vs">
+      <span id="vs-text">VS</span>
+    </div>
+
+    <!-- Formulario para agregar una nueva partida -->
+    <div class="formulario">
+      <h2>Agregar Nueva Partida</h2>
+      <input type="text" id="jugador1" placeholder="Nombre del Jugador 1" />
+      <input type="number" id="puntos1" placeholder="Puntos del Jugador 1" />
+      <br />
+      <input type="text" id="jugador2" placeholder="Nombre del Jugador 2" />
+      <input type="number" id="puntos2" placeholder="Puntos del Jugador 2" />
+      <button type="button" onclick="agregarPartida()">Agregar Partida</button>
+    </div>
+
+    <div id="alert" class="alert"></div>
   </body>
 </html>
