@@ -105,17 +105,23 @@
         const db = getFirestore(app);
 
         // Función para agregar una partida al ranking
-        async function agregarPartida(nombreJugador, puntos) {
-            try {
-                const docRef = await addDoc(collection(db, "partidas"), {
-                    nombre: nombreJugador,
-                    puntos: puntos,
-                    fecha: new Date()
-                });
-                console.log("Documento agregado con ID: ", docRef.id);
-                cargarRanking();  // Actualizar la tabla después de agregar la partida
-            } catch (e) {
-                console.error("Error al agregar el documento: ", e);
+        async function agregarPartida(jugador1, puntos1, jugador2, puntos2) {
+            if (jugador1 && puntos1 && jugador2 && puntos2) {
+                try {
+                    const docRef = await addDoc(collection(db, "partidas"), {
+                        jugador1: jugador1,
+                        puntos1: parseInt(puntos1),
+                        jugador2: jugador2,
+                        puntos2: parseInt(puntos2),
+                        fecha: new Date()
+                    });
+                    console.log("Documento agregado con ID: ", docRef.id);
+                    cargarRanking();  // Actualizar la tabla después de agregar la partida
+                } catch (e) {
+                    console.error("Error al agregar el documento: ", e);
+                }
+            } else {
+                alert("Por favor, ingresa los datos de ambos jugadores y los puntos.");
             }
         }
 
@@ -127,17 +133,21 @@
                 ranking.push(doc.data());
             });
 
-            // Ordenar el ranking por puntos
-            ranking.sort((a, b) => b.puntos - a.puntos);
+            // Ordenar el ranking por puntos obtenidos
+            ranking.sort((a, b) => {
+                const puntosTotalesA = a.puntos1 + a.puntos2;
+                const puntosTotalesB = b.puntos1 + b.puntos2;
+                return puntosTotalesB - puntosTotalesA;
+            });
 
             // Mostrar el ranking en la tabla
             const tabla = document.getElementById("tablaRanking");
             tabla.innerHTML = '';  // Limpiar la tabla antes de actualizarla
-            ranking.forEach((jugador, index) => {
+            ranking.forEach((partida, index) => {
                 const row = tabla.insertRow();
                 row.insertCell(0).textContent = index + 1;
-                row.insertCell(1).textContent = jugador.nombre;
-                row.insertCell(2).textContent = jugador.puntos;
+                row.insertCell(1).textContent = `${partida.jugador1} vs ${partida.jugador2}`;
+                row.insertCell(2).textContent = `${partida.puntos1} - ${partida.puntos2}`;
             });
         }
 
@@ -151,9 +161,11 @@
 
 <div>
     <h2>Registrar Partida</h2>
-    <input type="text" id="nombreJugador" placeholder="Nombre del Jugador">
-    <input type="number" id="puntosJugador" placeholder="Puntos" min="0">
-    <button onclick="agregarPartida(document.getElementById('nombreJugador').value, document.getElementById('puntosJugador').value)">Agregar</button>
+    <input type="text" id="jugador1" placeholder="Nombre del Jugador 1">
+    <input type="number" id="puntos1" placeholder="Puntos Jugador 1" min="0">
+    <input type="text" id="jugador2" placeholder="Nombre del Jugador 2">
+    <input type="number" id="puntos2" placeholder="Puntos Jugador 2" min="0">
+    <button onclick="agregarPartida(document.getElementById('jugador1').value, document.getElementById('puntos1').value, document.getElementById('jugador2').value, document.getElementById('puntos2').value)">Agregar Partida</button>
 </div>
 
 <h2>Ranking Actual</h2>
@@ -161,7 +173,7 @@
     <thead>
         <tr>
             <th>Posición</th>
-            <th>Jugador</th>
+            <th>Partida</th>
             <th>Puntos</th>
         </tr>
     </thead>
