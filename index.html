@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ranking Billar</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    h2 { margin-top: 30px; }
+    input, select, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 50%; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Ranking de Billar</h1>
+
+  <h2>Agregar Jugador</h2>
+  <input type="text" id="nuevoJugador" placeholder="Nombre del jugador">
+  <button onclick="agregarJugador()">Agregar</button>
+
+  <h2>Registrar Partida</h2>
+  <label>Jugador 1:</label>
+  <select id="jugador1"></select>
+  <label> vs </label>
+  <select id="jugador2"></select><br>
+  <input type="number" id="puntos1" placeholder="Puntos J1">
+  <input type="number" id="puntos2" placeholder="Puntos J2">
+  <button onclick="registrarPartida()">Registrar</button>
+
+  <h2>Tabla de Posiciones</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Jugador</th>
+        <th>Ganadas</th>
+        <th>Perdidas</th>
+      </tr>
+    </thead>
+    <tbody id="tablaPosiciones"></tbody>
+  </table>
+
+  <script>
+    const jugadores = {};
+    
+    function agregarJugador() {
+      const nombre = document.getElementById('nuevoJugador').value.trim();
+      if (nombre && !jugadores[nombre]) {
+        jugadores[nombre] = { ganadas: 0, perdidas: 0 };
+        actualizarSelects();
+        actualizarTabla();
+        document.getElementById('nuevoJugador').value = '';
+      }
+    }
+
+    function actualizarSelects() {
+      const selects = [document.getElementById('jugador1'), document.getElementById('jugador2')];
+      selects.forEach(select => {
+        select.innerHTML = '';
+        for (const nombre in jugadores) {
+          const option = document.createElement('option');
+          option.value = nombre;
+          option.textContent = nombre;
+          select.appendChild(option);
+        }
+      });
+    }
+
+    function registrarPartida() {
+      const j1 = document.getElementById('jugador1').value;
+      const j2 = document.getElementById('jugador2').value;
+      const p1 = parseInt(document.getElementById('puntos1').value);
+      const p2 = parseInt(document.getElementById('puntos2').value);
+
+      if (j1 !== j2 && !isNaN(p1) && !isNaN(p2)) {
+        if (p1 > p2) {
+          jugadores[j1].ganadas++;
+          jugadores[j2].perdidas++;
+        } else if (p2 > p1) {
+          jugadores[j2].ganadas++;
+          jugadores[j1].perdidas++;
+        }
+        actualizarTabla();
+        document.getElementById('puntos1').value = '';
+        document.getElementById('puntos2').value = '';
+      }
+    }
+
+    function actualizarTabla() {
+      const tabla = document.getElementById('tablaPosiciones');
+      const lista = Object.entries(jugadores).sort((a, b) => b[1].ganadas - a[1].ganadas);
+      tabla.innerHTML = '';
+      lista.forEach(([nombre, stats]) => {
+        tabla.innerHTML += `<tr><td>${nombre}</td><td>${stats.ganadas}</td><td>${stats.perdidas}</td></tr>`;
+      });
+    }
+  </script>
+</body>
+</html>
