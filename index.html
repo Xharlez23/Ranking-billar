@@ -1,148 +1,174 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ranking de Billar</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
-      padding: 20px;
-      color: #333;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    input, select, button {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #3498db;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de Billar</title>
+
+    <!-- Estilos CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        h2 {
+            color: #16a085;
+        }
+
+        div {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #16a085;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1abc9c;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 800px;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #16a085;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #e6f7f7;
+        }
+    </style>
+
+    <script type="module">
+        // Importar las funciones necesarias desde el SDK de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
+            authDomain: "rankingbillar.firebaseapp.com",
+            projectId: "rankingbillar",
+            storageBucket: "rankingbillar.appspot.com",
+            messagingSenderId: "527851969370",
+            appId: "1:527851969370:web:616b5a38062f7105a93163",
+            measurementId: "G-DH55Y3ZL0E"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Función para agregar una partida al ranking
+        async function agregarPartida(nombreJugador, puntos) {
+            try {
+                const docRef = await addDoc(collection(db, "partidas"), {
+                    nombre: nombreJugador,
+                    puntos: puntos,
+                    fecha: new Date()
+                });
+                console.log("Documento agregado con ID: ", docRef.id);
+                cargarRanking();  // Actualizar la tabla después de agregar la partida
+            } catch (e) {
+                console.error("Error al agregar el documento: ", e);
+            }
+        }
+
+        // Función para cargar el ranking desde Firebase
+        async function cargarRanking() {
+            const querySnapshot = await getDocs(collection(db, "partidas"));
+            const ranking = [];
+            querySnapshot.forEach((doc) => {
+                ranking.push(doc.data());
+            });
+
+            // Ordenar el ranking por puntos
+            ranking.sort((a, b) => b.puntos - a.puntos);
+
+            // Mostrar el ranking en la tabla
+            const tabla = document.getElementById("tablaRanking");
+            tabla.innerHTML = '';  // Limpiar la tabla antes de actualizarla
+            ranking.forEach((jugador, index) => {
+                const row = tabla.insertRow();
+                row.insertCell(0).textContent = index + 1;
+                row.insertCell(1).textContent = jugador.nombre;
+                row.insertCell(2).textContent = jugador.puntos;
+            });
+        }
+
+        // Cargar el ranking cuando se carga la página
+        window.onload = cargarRanking;
+    </script>
 </head>
 <body>
-  <div class="container">
-    <h1>Ranking de Billar</h1>
 
-    <h2>Agregar Jugador</h2>
-    <input type="text" id="newPlayer" placeholder="Nombre del jugador" />
-    <button onclick="addPlayer()">Agregar</button>
+<h1>Ranking de Billar</h1>
 
+<div>
     <h2>Registrar Partida</h2>
-    <select id="player1"></select>
-    <select id="player2"></select>
-    <input type="number" id="score1" placeholder="Marcador 1" min="0" />
-    <input type="number" id="score2" placeholder="Marcador 2" min="0" />
-    <button onclick="addMatch()">Registrar</button>
+    <input type="text" id="nombreJugador" placeholder="Nombre del Jugador">
+    <input type="number" id="puntosJugador" placeholder="Puntos" min="0">
+    <button onclick="agregarPartida(document.getElementById('nombreJugador').value, document.getElementById('puntosJugador').value)">Agregar</button>
+</div>
 
-    <h2>Tabla de Posiciones</h2>
-    <table id="ranking">
-      <thead>
+<h2>Ranking Actual</h2>
+<table>
+    <thead>
         <tr>
-          <th>Jugador</th>
-          <th>Juegos Ganados</th>
-          <th>Juegos Perdidos</th>
-          <th>Juegos Jugados</th>
+            <th>Posición</th>
+            <th>Jugador</th>
+            <th>Puntos</th>
         </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    </thead>
+    <tbody id="tablaRanking">
+        <!-- Aquí se llenarán los datos del ranking -->
+    </tbody>
+</table>
 
-  <script>
-    let players = JSON.parse(localStorage.getItem("players") || "{}");
-
-    function updatePlayerSelects() {
-      const select1 = document.getElementById("player1");
-      const select2 = document.getElementById("player2");
-      select1.innerHTML = select2.innerHTML = "";
-      for (const name in players) {
-        const opt1 = new Option(name, name);
-        const opt2 = new Option(name, name);
-        select1.add(opt1);
-        select2.add(opt2);
-      }
-    }
-
-    function updateRanking() {
-      const tbody = document.querySelector("#ranking tbody");
-      tbody.innerHTML = "";
-      const sorted = Object.entries(players).sort((a, b) => b[1].won - a[1].won);
-      for (const [name, stats] of sorted) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${name}</td><td>${stats.won}</td><td>${stats.lost}</td><td>${stats.won + stats.lost}</td>`;
-        tbody.appendChild(tr);
-      }
-    }
-
-    function savePlayers() {
-      localStorage.setItem("players", JSON.stringify(players));
-    }
-
-    function addPlayer() {
-      const name = document.getElementById("newPlayer").value.trim();
-      if (name && !players[name]) {
-        players[name] = { won: 0, lost: 0 };
-        savePlayers();
-        updatePlayerSelects();
-        updateRanking();
-        document.getElementById("newPlayer").value = "";
-      }
-    }
-
-    function addMatch() {
-      const p1 = document.getElementById("player1").value;
-      const p2 = document.getElementById("player2").value;
-      const s1 = parseInt(document.getElementById("score1").value);
-      const s2 = parseInt(document.getElementById("score2").value);
-
-      if (p1 === p2 || isNaN(s1) || isNaN(s2)) return;
-
-      if (s1 > s2) {
-        players[p1].won++;
-        players[p2].lost++;
-      } else if (s2 > s1) {
-        players[p2].won++;
-        players[p1].lost++;
-      }
-
-      savePlayers();
-      updateRanking();
-      document.getElementById("score1").value = "";
-      document.getElementById("score2").value = "";
-    }
-
-    // Inicialización
-    updatePlayerSelects();
-    updateRanking();
-  </script>
 </body>
 </html>
