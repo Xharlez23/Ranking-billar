@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
-      /* Estilos Básicos */
+      /* Estilo original de la tabla y la página */
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
@@ -82,6 +82,21 @@
       .alert-success {
         color: green;
       }
+
+      /* Diseño del VS */
+      .vs {
+        margin: 20px auto;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      .vs span {
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border-radius: 20px;
+      }
     </style>
   </head>
   <body>
@@ -98,11 +113,19 @@
       <tbody></tbody>
     </table>
 
+    <!-- VS para mostrar la partida entre 2 jugadores -->
+    <div class="vs">
+      <span id="vs-text">VS</span>
+    </div>
+
     <!-- Formulario para agregar una nueva partida -->
     <div class="formulario">
       <h2>Agregar Nueva Partida</h2>
-      <input type="text" id="jugador" placeholder="Nombre del Jugador" />
-      <input type="number" id="puntos" placeholder="Puntos" />
+      <input type="text" id="jugador1" placeholder="Nombre del Jugador 1" />
+      <input type="number" id="puntos1" placeholder="Puntos del Jugador 1" />
+      <br />
+      <input type="text" id="jugador2" placeholder="Nombre del Jugador 2" />
+      <input type="number" id="puntos2" placeholder="Puntos del Jugador 2" />
       <button type="button" onclick="agregarPartida()">Agregar Partida</button>
     </div>
 
@@ -148,22 +171,35 @@
         }
       }
 
-      // Función para agregar una nueva partida
+      // Función para agregar una nueva partida entre 2 jugadores
       async function agregarPartida() {
-        const jugador = document.getElementById("jugador").value;
-        const puntos = parseInt(document.getElementById("puntos").value);
+        const jugador1 = document.getElementById("jugador1").value;
+        const puntos1 = parseInt(document.getElementById("puntos1").value);
+        const jugador2 = document.getElementById("jugador2").value;
+        const puntos2 = parseInt(document.getElementById("puntos2").value);
 
-        if (!jugador || isNaN(puntos)) {
+        if (!jugador1 || !jugador2 || isNaN(puntos1) || isNaN(puntos2)) {
           document.getElementById("alert").textContent =
             "Por favor, ingresa los datos correctamente.";
           return;
         }
 
         try {
+          // Agregar las partidas de ambos jugadores a la base de datos
           await db.collection("ranking").add({
-            jugador: jugador,
-            puntos: puntos,
+            jugador: jugador1,
+            puntos: puntos1,
           });
+          await db.collection("ranking").add({
+            jugador: jugador2,
+            puntos: puntos2,
+          });
+
+          // Mostrar los jugadores en el VS
+          document.getElementById(
+            "vs-text"
+          ).innerHTML = `${jugador1} VS ${jugador2}`;
+
           document.getElementById("alert").textContent =
             "¡Partida agregada exitosamente!";
           document.getElementById("alert").classList.remove("alert");
