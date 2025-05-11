@@ -1,194 +1,156 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ranking de Billar</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-
-        h1 {
+            margin: 20px;
+            background-color: #f9f9f9;
             color: #333;
         }
-
-        .container {
-            width: 80%;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
         }
-
-        input {
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: 200px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
         table {
-            width: 80%;
+            width: 60%;
             margin: 20px auto;
             border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        table, th, td {
-            border: 1px solid #ddd;
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #4CAF50;
+        table th {
+            background-color: #3498db;
             color: white;
         }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        table tr:hover {
+            background-color: #f1f1f1;
         }
-
-        .form-container {
-            margin-bottom: 20px;
+        form {
+            text-align: center;
+            margin-top: 20px;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 8px;
+            margin: 10px 0;
+            width: 200px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .alert {
+            margin-top: 20px;
+            text-align: center;
+            color: #e74c3c;
         }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <h1>Ranking de Partidas de Billar</h1>
 
-    <h1>Ranking de Billar</h1>
+    <!-- Tabla para mostrar el ranking -->
+    <table id="tabla-ranking">
+      <thead>
+        <tr>
+          <th>Jugador</th>
+          <th>Puntos</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-    <div class="container">
-        <div class="form-container">
-            <h2>Registrar Partida</h2>
-            <input type="text" id="jugador1" placeholder="Nombre del Jugador 1">
-            <input type="number" id="puntos1" placeholder="Puntos Jugador 1" min="0">
-            <input type="text" id="jugador2" placeholder="Nombre del Jugador 2">
-            <input type="number" id="puntos2" placeholder="Puntos Jugador 2" min="0">
-            <button onclick="agregarPartida(
-                document.getElementById('jugador1').value,
-                document.getElementById('puntos1').value,
-                document.getElementById('jugador2').value,
-                document.getElementById('puntos2').value
-            )">Agregar Partida</button>
-        </div>
+    <!-- Formulario para agregar una nueva partida -->
+    <h2>Agregar Nueva Partida</h2>
+    <label for="jugador">Nombre del Jugador:</label>
+    <input type="text" id="jugador" placeholder="Nombre del Jugador" />
+    <label for="puntos">Puntos:</label>
+    <input type="number" id="puntos" placeholder="Puntos" />
+    <button onclick="agregarPartida()">Agregar Partida</button>
 
-        <h2>Ranking Actual</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Posición</th>
-                    <th>Partida</th>
-                    <th>Puntos</th>
-                </tr>
-            </thead>
-            <tbody id="tablaRanking">
-                <!-- Aquí se llenarán los datos del ranking -->
-            </tbody>
-        </table>
-    </div>
+    <script>
+      // Configuración de Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
+        authDomain: "rankingbillar.firebaseapp.com",
+        projectId: "rankingbillar",
+        storageBucket: "rankingbillar.firebasestorage.app",
+        messagingSenderId: "527851969370",
+        appId: "1:527851969370:web:616b5a38062f7105a93163",
+        measurementId: "G-DH55Y3ZL0E",
+      };
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+      // Inicializa Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyAbLudck7S12CLKDVDWhiNRLLO1DvWwwLY",
-    authDomain: "rankingbillar.firebaseapp.com",
-    projectId: "rankingbillar",
-    storageBucket: "rankingbillar.firebasestorage.app",
-    messagingSenderId: "527851969370",
-    appId: "1:527851969370:web:616b5a38062f7105a93163",
-    measurementId: "G-DH55Y3ZL0E"
-  };
+      // Función para cargar el ranking de partidas
+      async function cargarRanking() {
+        const rankingRef = db.collection("ranking"); // Nombre de la colección en Firestore
+        try {
+          const querySnapshot = await rankingRef.get();
+          const tabla = document.querySelector("#tabla-ranking tbody");
+          tabla.innerHTML = ""; // Limpia la tabla antes de cargar nuevos datos
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const fila = document.createElement("tr");
+            fila.innerHTML = `
+                        <td>${data.jugador}</td>
+                        <td>${data.puntos}</td>
+                    `;
+            tabla.appendChild(fila);
+          });
+        } catch (error) {
+          console.error("Error al cargar el ranking:", error);
+        }
+      }
 
-        // Función para agregar partida a Firestore
-        async function agregarPartida(jugador1, puntos1, jugador2, puntos2) {
-            if (jugador1 && puntos1 && jugador2 && puntos2) {
-                try {
-                    // Agregar la partida a la colección "partidas"
-                    const docRef = await addDoc(collection(db, "partidas"), {
-                        jugador1: jugador1,
-                        puntos1: parseInt(puntos1),
-                        jugador2: jugador2,
-                        puntos2: parseInt(puntos2),
-                        fecha: new Date()
-                    });
-                    console.log("Documento agregado con ID: ", docRef.id);
-                    cargarRanking(); // Cargar ranking después de agregar la partida
-                } catch (e) {
-                    console.error("Error al agregar el documento: ", e);
-                }
-            } else {
-                alert("Por favor, ingresa los datos de ambos jugadores y los puntos.");
-            }
+      // Función para agregar una nueva partida
+      async function agregarPartida() {
+        const jugador = document.getElementById("jugador").value;
+        const puntos = parseInt(document.getElementById("puntos").value);
+
+        if (!jugador || isNaN(puntos)) {
+          alert("Por favor, ingresa los datos correctamente.");
+          return;
         }
 
-        // Función para cargar el ranking desde Firestore
-        async function cargarRanking() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "partidas"));
-                const ranking = [];
-                querySnapshot.forEach((doc) => {
-                    ranking.push(doc.data());
-                });
-
-                // Ordenar partidas por la suma de los puntos
-                ranking.sort((a, b) => {
-                    const puntosTotalesA = a.puntos1 + a.puntos2;
-                    const puntosTotalesB = b.puntos1 + b.puntos2;
-                    return puntosTotalesB - puntosTotalesA;
-                });
-
-                // Actualizar la tabla de ranking
-                const tabla = document.getElementById("tablaRanking");
-                tabla.innerHTML = ''; // Limpiar la tabla antes de actualizar
-                ranking.forEach((partida, index) => {
-                    const row = tabla.insertRow();
-                    row.insertCell(0).textContent = index + 1;
-                    row.insertCell(1).textContent = `${partida.jugador1} vs ${partida.jugador2}`;
-                    row.insertCell(2).textContent = `${partida.puntos1} - ${partida.puntos2}`;
-                });
-            } catch (error) {
-                console.error("Error al cargar el ranking:", error);
-            }
+        try {
+          await db.collection("ranking").add({
+            jugador: jugador,
+            puntos: puntos,
+          });
+          alert("Partida agregada exitosamente!");
+          cargarRanking(); // Recarga el ranking después de agregar la partida
+        } catch (error) {
+          console.error("Error al agregar la partida:", error);
         }
+      }
 
-        // Cargar el ranking al inicio
-        window.onload = cargarRanking;
+      // Carga el ranking inicial cuando la página se cargue
+      window.onload = cargarRanking;
     </script>
-
-</body>
+  </body>
 </html>
